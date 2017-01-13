@@ -163,14 +163,14 @@ class Taggable extends Behavior
 
             if ($tag->save()) {
                 $updatedTags[] = $tag;
-                $rows[] = [$this->owner->getPrimaryKey(), $tag->getPrimaryKey()];
+                $rows[] = [$this->owner->getPrimaryKey(), $tag->getPrimaryKey(),$this->owner->tableName()];
             }
         }
 
         if (!empty($rows)) {
             $this->owner->getDb()
                 ->createCommand()
-                ->batchInsert($pivot, [key($relation->via->link), current($relation->link)], $rows)
+                ->batchInsert($pivot, ['owner_id', 'tag_id','owner_table'], $rows)
                 ->execute();
         }
 
@@ -191,6 +191,7 @@ class Taggable extends Behavior
             ->select(current($relation->link))
             ->from($pivot)
             ->where([key($relation->via->link) => $this->owner->getPrimaryKey()])
+            ->andWhere(['owner_table'=>$this->owner->tableName()])
             ->column($this->owner->getDb());
 
         if (!empty($pks)) {
